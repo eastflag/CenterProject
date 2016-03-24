@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.persistence.BoardMapper">
+
+<insert id="insertUser" parameterType="UserVO">
+	INSERT INTO user(id, password, name, email, mdn) values(HEX(AES_ENCRYPT(#{id}, 'center')), #{password}, 
+		HEX(AES_ENCRYPT(#{name}, 'center')), HEX(AES_ENCRYPT(#{email}, 'center')), HEX(AES_ENCRYPT(#{mdn}, 'center')));
+</insert>
+
+<select id="selectUser" parameterType="UserVO" resultType="UserVO">
+	SELECT password, status, created, updated,
+		CAST(AES_DECRYPT(unhex(id), 'center') AS CHAR(100)) as 'id',
+		CAST(AES_DECRYPT(unhex(name), 'center') AS CHAR(100)) as 'name',
+		CAST(AES_DECRYPT(unhex(email), 'center') AS CHAR(100)) as 'email',
+		CAST(AES_DECRYPT(unhex(mdn), 'center') AS CHAR(100)) as 'mdn'
+	FROM user 
+	WHERE id = #{id}
+	Limit 1
+</select>
+
+<insert id="insertAdmin" parameterType="AdminVO">
+	INSERT INTO admin(id, password, name, role_level)
+		VALUES(HEX(AES_ENCRYPT(#{id}, 'center')), #{password}, HEX(AES_ENCRYPT(#{name}, 'center')), #{role_level});
+</insert>
+
+<update id="updateAdmin" parameterType="AdminVO">
+	UPDATE admin
+	<set>
+		updated = now()
+		<if test="id != null">, id=HEX(AES_ENCRYPT(#{id}, 'center'))</if>
+		<if test="password != null">, password=#{password}</if>
+		<if test="name != null">, name=HEX(AES_ENCRYPT(#{name}, 'center'))</if>
+		<if test="role_level != 0">, role_level=#{role_level}</if>
+	</set>
+	WHERE admin_id = #{admin_id}
+</update>
+
+<delete id="deleteAdmin" parameterType="AdminVO">
+	DELETE FROM admin
+	WHERE admin_id = #{admin_id}
+</delete>
+
+<select id="countAdmin" parameterType="SearchVO" resultType="Integer">
+	SELECT count(*) FROM manager
+</select>
+
+<select id="selectAdmin" parameterType="AdminVO" resultType="AdminVO">
+	SELECT 
+		admin_id,
+		CAST(AES_DECRYPT(unhex(id), 'center') AS CHAR(100)) as 'id',
+		password,
+		CAST(AES_DECRYPT(unhex(name), 'center') AS CHAR(100)) as 'name',
+		role_level, status, created, updated
+	FROM admin
+	WHERE  
+		admin_id=#{admin_id}
+	Limit 1
+</select>
+
+<select id="selectAdminList" parameterType="SearchVO" resultType="AdminVO">
+	SELECT 
+		admin_id,
+		CAST(AES_DECRYPT(unhex(id), 'center') AS CHAR(100)) as 'id',
+		password,
+		CAST(AES_DECRYPT(unhex(name), 'center') AS CHAR(100)) as 'name',
+		role_level, status, created, updated
+	FROM admin
+	ORDER BY name
+	<if test="page_size != 0">
+		LIMIT #{start_index}, #{page_size}
+	</if>
+</select>
+
+<!-- 백오피스 접속 정보 -->
+<insert id="insertAdminAccess" parameterType="DiningVO">
+	INSERT INTO admin_access(login_id, access_ip)
+	VALUES(#{login_id}, #{access_ip});
+</insert>
+<select id="selectAdminAccessList" parameterType="SearchVO" resultType="AdminAccessVO">
+	SELECT 
+		admin_access_id, login_id, access_ip, created
+	FROM admin_access
+	ORDER BY created desc
+	<if test="page_size != 0">
+		LIMIT #{start_index}, #{page_size}
+	</if>
+</select>
+<select id="countAdminAccess" resultType="Integer">
+	SELECT count(*) FROM admin_access
+</select>
+
+</mapper>
