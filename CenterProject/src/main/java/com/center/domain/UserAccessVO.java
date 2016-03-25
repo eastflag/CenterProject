@@ -7,13 +7,10 @@ import lombok.Data;
 
 @Data
 @JsonInclude(Include.NON_NULL)
-public class AdminVO extends SearchVO {
-	private int admin_id;
-	private String id;
-	private String password;
-	private String name;
-	private int role_level;
-	private int status;
+public class UserAccessVO extends SearchVO {
+	private int user_access_id;
+	private int user_id;
+	private int access_os;
+	private int access_type;
 	private String created;
-	private String updated;
 }

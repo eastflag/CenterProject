@@ -10,7 +10,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 
 @Configuration
-@MapperScan("com.example.persistence")
+@MapperScan("com.center.persistence")
 public class DataConfig {
 	@Bean
 	public DataSource dataSource() {

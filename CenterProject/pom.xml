@@ -40,6 +40,13 @@
 			<scope>test</scope>
 		</dependency>
 		
+		<!-- JWT Authentication -->
+		<dependency>
+		    <groupId>io.jsonwebtoken</groupId>
+		    <artifactId>jjwt</artifactId>
+		    <version>0.5.1</version>
+		</dependency>
+		
 		<!-- MySql -->
 		<dependency>
 			<groupId>mysql</groupId>
