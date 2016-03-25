@@ -14,9 +14,6 @@
     <!-- 합쳐지고 최소화된 최신 CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/smoothness/jquery-ui.css" rel="stylesheet" type="text/css" />
-    
-    <!-- slide css -->
-	<link rel="stylesheet" href="/ng-scrollbars-gh-pages/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css" type="text/css"/>
 
     <!-- Custom CSS -->
     <link href="/css/center.css" rel="stylesheet">
@@ -38,10 +35,6 @@
     <![endif]-->
     <base href="/admin/index.html">
     <script type="text/javascript">
-        window.onbeforeunload = function (event) {
- //           getAuthInfoCookie();
-        };
-
         function getAuthInfoCookie() {
             var cookie = document.cookie;
             var name = "auth_info=";
@@ -85,7 +78,6 @@
 	</div>
 
     <div id="wrapper" ng-show="loggedIn()" ng-cloak>
-  
     	<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -114,48 +106,13 @@
                             <a href="#"><i class="fa fa-dashboard fa-fw"></i> 사용자관리<span class="fa arrow"></a>
                             <ul class="nav nav-second-level">
                                 <li>
-                                    <a href="#!/member">회원관리</a>
-                                </li>
-                                <li>
                                     <a href="#!/admin">계정관리</a>
-                                </li>
-                                <li>
-                                    <a href="#!/location_use">위치정보 제공 관리</a>
                                 </li>
                                 <li>
                                     <a href="#!/admin_access">계정 접근 관리 </a>
                                 </li>
                             </ul>
                         </li>
-                        <li ng-show="role_id == 1">
-                            <a href="#!/school"><i class="fa fa-table fa-fw"></i> 학교관리</a>
-                        </li>
-                         
-                        <li ng-show="role_id == 1">
-                        	<a href="#!/statistic"><i class="fa fa-wrench fa-fw"></i> 통계</a>
-                        </li>
-                        
-                        <li ng-show="role_id == 1 || role_id == 2">
-                            <a href="#!/consult"><i class="fa fa-wrench fa-fw"></i> 상담관리</a>
-                        </li>
-                        <li ng-show="role_id == 1">
-                            <a href="#"><i class="fa fa-wrench fa-fw"></i> 사이트관리<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-                                <li>
-                                    <a href="#!/noti">공지사항</a>
-                                </li>
-                                <li>
-                                    <a href="#!/qna">QnA게시판</a>
-                                </li>
-                                <li>
-                                    <a href="#!/os">앱 버전 관리</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
-                        </li>
-                        <li ng-show="role_id == 1"><a href="#!/press"><i class="fa fa-wrench fa-fw"></i> 언론자료 관리</a></li>
-                        <li ng-show="role_id == 1"><a href="#!/magazine"><i class="fa fa-wrench fa-fw"></i> 건강매거진 관리</a></li>
-                        <li ng-show="role_id == 1"><a href="#!/challenge"><i class="fa fa-wrench fa-fw"></i> 도전!건강! 관리</a></li>
                     </ul>
                 </div>
                   <!-- /.sidebar-collapse -->
@@ -184,22 +141,11 @@
     <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-1.1.2.js"></script>
     <script src="/bower_components/angular-jwt/dist/angular-jwt.js" ></script>
 
-	<script src="/js/angularjs/ng-file-upload-shim.min.js"></script>
-	<script src="/js/angularjs/ng-file-upload.min.js"></script>
-    <script src='/js/angularjs/angular-modal-service.js'></script>
-    <!-- <script src="https://rawgit.com/dwmkerr/angular-modal-service/master/dst/angular-modal-service.js"></script> -->
     <!-- Metis Menu Plugin JavaScript -->
     <script src="/bower_components/metisMenu/dist/metisMenu.min.js"></script>
-	<script type="text/javascript" src="/js/ckeditor/ckeditor.js"></script>
-	<script type="text/javascript" src="/js/angularjs/angular-ckeditor.js"></script>
-	<script type="text/javascript" src="/js/jquery/idangerous.swiper-1.9.1.min.js"></script>
+
     <!-- toaster -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angularjs-toaster/0.4.16/toaster.min.js"></script>
-		
-	<!-- slide js -->
-	<script src="/ng-scrollbars-gh-pages/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.js"></script>
-	<script src="/ng-scrollbars-gh-pages/bower_components/ng-scrollbars/src/scrollbars.js"></script>
-	<script src="/ng-scrollbars-gh-pages/javascripts/highlight.js"></script>
     
     <!--Custom JavaScript -->
     <script src='/js/admin_app.js'></script>
