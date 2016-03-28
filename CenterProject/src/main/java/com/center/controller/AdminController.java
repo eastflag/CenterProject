@@ -99,4 +99,14 @@ public class AdminController {
 		
 		return new ResultDataTotal<List<AdminVO>>(0, "success", adminList, total);
 	}
+	
+	//백오피스 접근 정보 가져오기
+	@RequestMapping("/getAdminAccessList")
+    public ResultData<List<AdminAccessVO>> getAdminAccessList(@RequestBody AdminAccessVO inAdminAccess) {
+		logger.debug("/getAdminAccessList--------------------------------------------------");
+		List<AdminAccessVO> accessList = apiService.getAdminAccessList(inAdminAccess);
+		int total = apiService.countAdminAccess();
+		
+		return new ResultDataTotal<List<AdminAccessVO>>(0, "success", accessList, total);
+	}
 }

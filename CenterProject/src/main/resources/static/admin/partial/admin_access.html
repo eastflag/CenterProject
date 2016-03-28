@@ -21,16 +21,16 @@
 	                        </tr>
 	                    </thead>
 	                    <tbody>
-	                        <tr ng-repeat="data in datas | orderBy:'-created'">
+	                        <tr ng-repeat="data in datas | orderBy:'-data.admin_access_id'">
 	                            <td>{{data.created}}</td>
-	                            <td>{{data.login_id}}</td>
+	                            <td>{{data.id}}</td>
 	                            <td>{{data.access_ip}}</td>
 	                    </tbody>
 	                </table>
                 </div>
 
                 <div class="panel-footer" style="text-align:center">
-					<pagination boundary-links="true" total-items="totalCount" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-change="getAdminAccessList()" max-size="10"></pagination>
+					<uib-pagination boundary-links="true" total-items="totalCount" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-change="getAdminAccessList()" max-size="10"></uib-pagination>
                 </div>
             </div>
         </div>

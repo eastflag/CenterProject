@@ -12,4 +12,7 @@ public class AdminAccessVO extends SearchVO {
 	private int admin_id;
 	private String access_ip;
 	private String created;
+	
+	//admin 테이블
+	private String id;
 }

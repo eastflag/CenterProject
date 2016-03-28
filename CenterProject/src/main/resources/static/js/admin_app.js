@@ -6,45 +6,34 @@ var app = angular.module('app', [
     'ngRoute', 'ui.bootstrap', 'ngCookies', 'toaster', 'ngAnimate', 'angular-jwt', 'ngAnimate'
 ]);
 
-app.run(['$rootScope', '$cookieStore', '$http', 'toaster', function($rootScope, $cookieStore, $http, toaster) {
-  	$rootScope.role_id = 0;
-  	$rootScope.login_url = "/index.html";
-
-  	$rootScope.refreshToken = function(new_token) {
-		$rootScope.auth_token = new_token;
-
-		var auth_info = {auth_token : $rootScope.auth_token, role_id : $rootScope.role_id};
-
-		$cookieStore.put("auth_info", auth_info);
-
-		$http.defaults.headers.post['X-Auth'] = $rootScope.auth_token;
-  	};
-
-  	$rootScope.logout = function() {
-  		$rootScope.auth_token = null;
-  		$cookieStore.remove("auth_info");
-  		$rootScope.pop('error', 'LogOut', '세션이 만료되었습니다.', 3000);
-  	}
-
-  	$rootScope.pop = function(type, title, content, time) {
-  		toaster.pop(type, title, content, time);
-  	}
-
-  	$rootScope.clear = function() {
-  		toaster.clear();
-  	}
-}]);
-
 app.config( ['$routeProvider', '$locationProvider', '$httpProvider', function ($routeProvider, $locationProvider, $httpProvider) {
 	$routeProvider
-	.when('/admin', {templateUrl: '/admin/templates/admin.html'})
-	.when('/admin_access', {templateUrl: '/admin/templates/admin_access.html'})
-	
+		.when('/admin', {templateUrl: '/admin/partial/admin.html'})
+		.when('/admin_access', {templateUrl: '/admin/partial/admin_access.html'})
+
 	$locationProvider.html5Mode(false);
 	$locationProvider.hashPrefix('!');
 
 	$httpProvider.defaults.headers.post['X-Auth'] = "";
 }]);
+
+app.run(['$rootScope', '$cookieStore', '$http', 'toaster', function($rootScope, $cookieStore, $http, toaster) {
+
+}]);
+
+app.directive('ngEnter', function () {
+	return function (scope, element, attrs) {
+		element.bind("keydown keypress", function (event) {
+			if(event.which === 13) {
+				scope.$apply(function (){
+					scope.$eval(attrs.ngEnter);
+				});
+
+				event.preventDefault();
+			}
+		});
+	};
+});
 
 app.service('MainSvc', function($http) {
 	this.getLogin = function(login) {
@@ -58,40 +47,28 @@ app.service('AdminAccessSvc', function($http) {
 	}
 });
 
-
 app.service('AdminSvc', function($http) {
-	this.getManagerList = function(admin) {
-		return $http.post('/admin/api/getManagerList', admin);
+	this.getAdminList = function(admin) {
+		return $http.post('/admin/api/getAdminList', admin);
 	}
-	this.addManager = function(admin) {
-		return $http.post('/admin/api/addManager', admin);
+	this.addAdmin = function(admin) {
+		return $http.post('/admin/api/addAdmin', admin);
 	}
-	this.modifyManager = function(admin) {
-		return $http.post('/admin/api/modifyManager', admin);
+	this.modifyAdmin = function(admin) {
+		return $http.post('/admin/api/modifyAdmin', admin);
 	}
-	this.removeManager = function(admin) {
-		return $http.post('/admin/api/removeManager', admin);
+	this.removeAdmin = function(admin) {
+		return $http.post('/admin/api/removeAdmin', admin);
 	}
 });
 
-app.directive('ngEnter', function () {
-    return function (scope, element, attrs) {
-        element.bind("keydown keypress", function (event) {
-            if(event.which === 13) {
-                scope.$apply(function (){
-                    scope.$eval(attrs.ngEnter);
-                });
 
-                event.preventDefault();
-            }
-        });
-    };
-});
 
-app.controller('MainCtrl', ['$scope', '$http', '$rootScope', '$cookieStore', 'MainSvc', 'jwtHelper', function ($scope, $http, $rootScope, $cookieStore, MainSvc, jwtHelper) {
+app.controller('MainCtrl', ['$scope', '$http', '$rootScope', '$cookieStore', 'MainSvc', 'jwtHelper', 'toaster',
+	function ($scope, $http, $rootScope, $cookieStore, MainSvc, jwtHelper, toaster) {
 	$scope.token = null;
 	$scope.error = null;
-	$scope.role_id = null;
+	$scope.role_level = null;
 
 	$scope.login = function() {
 		$scope.error = null;
@@ -99,20 +76,17 @@ app.controller('MainCtrl', ['$scope', '$http', '$rootScope', '$cookieStore', 'Ma
 		.success(function(value){
 			if(value.result == 0) {
 				$scope.id = null;
-				$scope.pass = null;
+				$scope.password = null;
 
 				$scope.token = value.data.token;
-				$scope.role_id = value.data.role_id;
+				$scope.role_level = value.data.role_level;
 
-				$rootScope.auth_token = $scope.token;
-				$rootScope.role_id = $scope.role_id;
-
-				var auth_info = {auth_token : $rootScope.auth_token, role_id : $rootScope.role_id};
+				var auth_info = {token : $scope.token, role_level : $scope.role_level};
 
 				$cookieStore.put("auth_info", auth_info);
 
-				$http.defaults.headers.post['X-Auth'] = $rootScope.auth_token;
-				console.log('rootScope token:' + $rootScope.auth_token);
+				$http.defaults.headers.post['X-Auth'] = $scope.token;
+				console.log('token:' + $scope.token);
 			} else {
 				alert(value.msg);
 			}
@@ -120,57 +94,76 @@ app.controller('MainCtrl', ['$scope', '$http', '$rootScope', '$cookieStore', 'Ma
 		.error(function(error) {
 			$scope.error = error;
 		})
-	}
+	};
 
 	$scope.loggedIn = function() {
 		if ($cookieStore.get("auth_info") != null && $cookieStore.get("auth_info") != undefined) {
 			var auth_info = $cookieStore.get("auth_info");
 			//expire time 검증
-			var token = auth_info.auth_token;
-			var isExpired = jwtHelper.isTokenExpired(token);
+			var isExpired = jwtHelper.isTokenExpired(auth_info.token);
 			
 			if(isExpired) {
 				return false;
 			} else {
-				$rootScope.auth_token = auth_info.auth_token;
-				$rootScope.role_id = auth_info.role_id;
-				$scope.role_id = auth_info.role_id;
+				$scope.token = auth_info.token;
+				$scope.role_level = auth_info.role_level;
 
-				$http.defaults.headers.post['X-Auth'] = $rootScope.auth_token;
+				$http.defaults.headers.post['X-Auth'] = $scope.token;
 				return true
 			}
 		} else {
 			return false;
 		}
-    }
+    };
 
+	$scope.refreshToken = function(new_token) {
+		$scope.token = new_token;
+		var auth_info = {token : $scope.token, role_level : $scope.role_level};
+		$cookieStore.put("auth_info", auth_info);
+		$http.defaults.headers.post['X-Auth'] = $scope.token;
+	};
+
+	//로그아웃 버튼
     $scope.logOut = function() {
-    	$rootScope.auth_token = null;
-		$rootScope.role_id = 0;
-		$scope.role_id = 0;
+    	$scope.token = null;
+		$scope.role_level = null;
 
 		$http.defaults.headers.post['X-Auth'] = "";
-
 		$cookieStore.remove("auth_info");
-    }
+    };
+
+	//강제 로그아웃
+	$scope.logout = function () {
+		$scope.logOut();
+		$scope.pop('error', 'LogOut', '세션이 만료되었습니다.', 2000);
+	};
+
+	$scope.pop = function(type, title, content, time) {
+		toaster.pop(type, title, content, time);
+	};
+
+	$scope.clear = function() {
+		toaster.clear();
+	};
 }]);
 
 
-app.controller('AdminAccessCtrl', ['$scope', '$rootScope', '$cookieStore', 'AdminAccessSvc', function ($scope, $rootScope, $cookieStore, AdminAccessSvc) {
+app.controller('AdminAccessCtrl', ['$scope', 'AdminAccessSvc', function ($scope, AdminAccessSvc) {
 	$scope.currentPage = 1;
 	$scope.totalCount = 0;
 
 	$scope.getAdminAccessList = function() {
+		console.log('adminAccessList:' + $scope.$parent.token);
 		AdminAccessSvc.getAdminAccessList({start_index:($scope.currentPage - 1) * 10, page_size:10})
-		.success(function(datas, status, headers) {
-			$rootScope.refreshToken(headers('X-Auth'));
-			$scope.datas = datas.data;
-			$scope.totalCount = datas.total;
-		}).error(function(data, status) {
+		.success(function(value, status, headers) {
+			$scope.$parent.refreshToken(headers('X-Auth'));
+			$scope.datas = value.data;
+			$scope.totalCount = value.total;
+		}).error(function(value, status) {
 			if (status == 401) {
-				$rootScope.logout();
+				$scope.$parent.logout();
 			} else {
-				alert("error : " + data.message);
+				alert("error : " + value.message);
 			}
 		});
 	}
@@ -179,7 +172,7 @@ app.controller('AdminAccessCtrl', ['$scope', '$rootScope', '$cookieStore', 'Admi
 }]);
 
 
-app.controller('AdminCtrl', ['$scope', '$rootScope', '$window', '$cookieStore', 'AdminSvc', function ($scope, $rootScope, $window, $cookieStore, AdminSvc) {
+app.controller('AdminCtrl', ['$scope', '$window', 'AdminSvc', function ($scope, $window, AdminSvc) {
 	$scope.admins = [];
 	
 	$scope.currentPageAdmin = 1;
@@ -188,109 +181,104 @@ app.controller('AdminCtrl', ['$scope', '$rootScope', '$window', '$cookieStore', 
 	$scope.admin_mode = "";
 	$scope.admin_mode_text = "관리자 추가";
 
-	$scope.roles = [
-		{code: 1, name: "슈퍼관리자"},
-		{code: 2, name: "상담사"},
-		{code: 3, name: "측정관리자"}
-	];
+	$scope.roles = {"슈퍼관리자":1, "일반관리자":2};
 
-
-	$scope.getManagerList = function(){
-		AdminSvc.getManagerList({start_index:($scope.currentPageAdmin - 1) * 10, page_size:10})
-		.success(function(admins, status, headers) {
-			$rootScope.refreshToken(headers('X-Auth'));
-			$scope.admins = admins.data;
-			$scope.totalAdminListCount = admins.total;
+	$scope.getAdminList = function(){
+		AdminSvc.getAdminList({start_index:($scope.currentPageAdmin - 1) * 10, page_size:10})
+		.success(function(value, status, headers) {
+			$scope.$parent.refreshToken(headers('X-Auth'));
+			$scope.admins = value.data;
+			$scope.totalAdminListCount = value.total;
 
 			$scope.clearAdmin();
-		}).error(function(data, status) {
+		}).error(function(value, status) {
 			if (status == 401) {
-				$rootScope.logout();
+				$scope.$parent.logout();
 			} else {
-				alert("error : " + data.message);
+				alert("error : " + value.message);
 			}
 		});
 	}
 
-	$scope.getManagerList();
+	$scope.getAdminList();
 
 	$scope.clearAdmin = function() {
 		$scope.admin_mode = "";
 		$scope.admin_mode_text = "관리자 추가";
 
 		$scope.id = null;
-		$scope.pass = null;
+		$scope.password = null;
 		$scope.name = null;
-		$scope.role_id = "";
+		$scope.role_level = "";
 	}
 
 	$scope.adminListPageChanged = function() {
-		$scope.getManagerList();
+		$scope.getAdminList();
 	};
 
 	$scope.editAdmin = function(admin) {
-		$scope.manager_id = admin.manager_id;
+		$scope.admin_id = admin.admin_id;
 		$scope.admin_mode = "edit";
 		$scope.admin_mode_text = "관리자 수정";
 
 		$scope.id = admin.id;
-		$scope.pass = admin.pass;
+		$scope.password = admin.password;
 		$scope.name = admin.name;
-		$scope.role_id = admin.role_id;
+		$scope.role_level = admin.role_level;
 	}
 
 	$scope.addAdmin = function() {
 		var admin = {
 			id: $scope.id,
-			pass: $scope.pass,
+			password: $scope.password,
 			name: $scope.name,
-			role_id: $scope.role_id
+			role_level: $scope.role_level
 		}
 
-		AdminSvc.addManager(admin)
-		.success(function(data){
+		AdminSvc.addAdmin(admin)
+		.success(function(value){
 			$scope.clearAdmin();
-			$scope.getManagerList();
-		}).error(function(data, status) {
+			$scope.getAdminList();
+		}).error(function(value, status) {
 			if (status == 401) {
-				$rootScope.logout();
+				$scope.$parent.logout();
 			} else {
-				alert("error : " + data.message);
+				alert("error : " + value.message);
 			}
 		});
 	}
 
 	$scope.modifyAdmin = function() {
 		var admin = {
-			manager_id: $scope.manager_id,
+			admin_id: $scope.admin_id,
 			name: $scope.name,
-			role_id: $scope.role_id
+			role_level: $scope.role_level
 		}
 		
-		AdminSvc.modifyManager(admin)
-		.success(function(data){
+		AdminSvc.modifyAdmin(admin)
+		.success(function(value){
 			$scope.clearAdmin();
-			$scope.getManagerList();
-		}).error(function(data, status) {
+			$scope.getAdminList();
+		}).error(function(value, status) {
 			if (status == 401) {
-				$rootScope.logout();
+				$scope.$parent.logout();
 			} else {
-				alert("error : " + data.message);
+				alert("error : " + value.message);
 			}
 		});
 	}
 
 	$scope.deleteAdmin = function(admin) {
 		if ($window.confirm("삭제하시겠습니까?")) {	
-			AdminSvc.removeManager(admin)
+			AdminSvc.removeAdmin(admin)
 			.success(function(result) {
 				$scope.currentPageAdmin = 1;
 				
 				$scope.clearAdmin();
-				$scope.getManagerList();
+				$scope.getAdminList();
 			}).error(function(data, status) {
 				if (status == 401) {
-					$rootScope.logout();
+					$scope.$parent.logout();
 				} else {
 					alert("error : " + data.message);
 				}

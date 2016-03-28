@@ -102,8 +102,9 @@
 </insert>
 <select id="selectAdminAccessList" parameterType="AdminAccessVO" resultType="AdminAccessVO">
 	SELECT 
-		admin_access_id, admin_id, access_ip, created
-	FROM admin_access
+		admin_access.admin_access_id, admin_access.access_ip, admin_access.created,
+		CAST(AES_DECRYPT(unhex(admin.id), 'center') AS CHAR(100)) as 'id'
+	FROM admin_access inner join admin on admin_access.admin_id = admin.admin_id
 	ORDER BY admin_access_id desc
 	<if test="page_size != 0">
 		LIMIT #{start_index}, #{page_size}
